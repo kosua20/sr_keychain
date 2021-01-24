@@ -1,8 +1,3 @@
-//#include <stdlib.h>
-//#include <assert.h>
-//#include <string.h>
-//#include <stdio.h>
-
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -16,7 +11,7 @@
 #ifdef _WIN32
 #include <wincred.h>
 
-wchar_t * get_complete_url(const char * domain, const char * user){
+wchar_t * _sr_keychain_get_complete_url(const char * domain, const char * user){
 	const int length = strlen(user) + 1 + strlen(domain);
 	char* domainAndUser = (char*)malloc(sizeof(char) * (length + 1));
 	snprintf(domainAndUser, length, "%s@%s", user, domain);
@@ -32,10 +27,14 @@ wchar_t * get_complete_url(const char * domain, const char * user){
 #ifdef __linux__
 #include <libsecret/secret.h>
 
+#ifndef SR_KEYCHAIN_LINUX_SCHEME_NAME
+#define SR_KEYCHAIN_LINUX_SCHEME_NAME "com.sr.sr_keychain"
+#endif
+
 // Declare secret scheme.
-const SecretSchema * get_secret_schema(){
+const SecretSchema * _sr_keychain_get_schema(){
 	static SecretSchema schema;
-	schema.name = "com.sr.sr_keychain";
+	schema.name = SR_KEYCHAIN_LINUX_SCHEME_NAME;
 	schema.flags = SECRET_SCHEMA_NONE;
 	schema.attributes[0].name = "domain";
 	schema.attributes[0].type = SECRET_SCHEMA_ATTRIBUTE_STRING;
@@ -60,7 +59,7 @@ int sr_keychain_get_password(const char * domain, const char * user, char ** pas
 	}
 #elif defined(_WIN32)
 
-	wchar_t* targetName = get_complete_url(domain, user);
+	wchar_t* targetName = _sr_keychain_get_complete_url(domain, user);
 
 	PCREDENTIALW credential;
 	BOOL stat = CredReadW(targetName, CRED_TYPE_GENERIC, 0, &credential);
@@ -76,7 +75,7 @@ int sr_keychain_get_password(const char * domain, const char * user, char ** pas
 	}
 #elif defined(__linux__)
 	GError* stat = NULL;
-	gchar *passBuffer = secret_password_lookup_sync(get_secret_schema(), NULL, &stat,
+	gchar *passBuffer = secret_password_lookup_sync(_sr_keychain_get_schema(), NULL, &stat,
 		"domain", domain, "user", user, NULL);
 	if(stat != NULL){
 		g_error_free(stat);
@@ -110,7 +109,7 @@ int sr_keychain_set_password(const char * domain, char * user, const char * pass
 	}
 	return stat == 0 ? 0 : 1;
 #elif defined(_WIN32)
-	wchar_t* targetName = get_complete_url(domain, user);
+	wchar_t* targetName = _sr_keychain_get_complete_url(domain, user);
 
 	CREDENTIALW credsToAdd = {};
 	credsToAdd.Flags = 0;
@@ -125,7 +124,7 @@ int sr_keychain_set_password(const char * domain, char * user, const char * pass
 	return stat ? 0 : 1;
 #elif defined(__linux__)
 	GError* stat = NULL;
-	secret_password_store_sync(get_secret_schema(), SECRET_COLLECTION_DEFAULT, "", password, NULL, &stat, "domain", domain, "user", user, NULL);
+	secret_password_store_sync(_sr_keychain_get_schema(), SECRET_COLLECTION_DEFAULT, "", password, NULL, &stat, "domain", domain, "user", user, NULL);
 	if(stat != NULL){
 		g_error_free(stat);
 		return 1;
