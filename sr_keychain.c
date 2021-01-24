@@ -42,7 +42,7 @@ const SecretSchema * get_secret_schema(){
 	schema.attributes[1].name = "user";
 	schema.attributes[1].type = SECRET_SCHEMA_ATTRIBUTE_STRING;
 	schema.attributes[2].name = "NULL";
-	schema.attributes[2].type = SecretSchemaAttributeType(0);
+	schema.attributes[2].type = (SecretSchemaAttributeType)0;
 	return &schema;
 }
 #endif
@@ -76,8 +76,8 @@ int sr_keychain_get_password(const char * domain, const char * user, char ** pas
 	}
 #elif defined(__linux__)
 	GError* stat = NULL;
-	gchar *passBuffer = secret_password_lookup_sync(getSecretSchema(), NULL, &stat,
-		"domain", server, "user", user, NULL);
+	gchar *passBuffer = secret_password_lookup_sync(get_secret_schema(), NULL, &stat,
+		"domain", domain, "user", user, NULL);
 	if(stat != NULL){
 		g_error_free(stat);
 		return 1;
@@ -128,8 +128,9 @@ int sr_keychain_set_password(const char * domain, char * user, const char * pass
 	secret_password_store_sync(get_secret_schema(), SECRET_COLLECTION_DEFAULT, "", password, NULL, &stat, "domain", domain, "user", user, NULL);
 	if(stat != NULL){
 		g_error_free(stat);
-		return 0;
+		return 1;
 	}
+	return 0;
 #else
 	#pragma message("Unsupported platform for sr_keychain.")
 #endif

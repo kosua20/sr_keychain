@@ -42,7 +42,9 @@ project("sr_keychain")
 	filter("system:macosx")
 
 	filter({"system:linux"})
-
+		-- On Linux We have to query the dependencies for libsecret
+		buildoptions({"`pkg-config --cflags libsecret-1`"})
+	
 	-- visual studio filters
 	--filter("action:vs*")
 	--	defines({ "_CRT_SECURE_NO_WARNINGS" })    
