@@ -1,3 +1,13 @@
+
+#ifndef SR_KEYCHAIN_MALLOC
+#define SR_KEYCHAIN_MALLOC(S) (malloc(S))
+#endif
+
+#ifndef SR_KEYCHAIN_FREE
+#define SR_KEYCHAIN_FREE(S) (free(S))
+#endif
+
+
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -13,13 +23,13 @@
 
 wchar_t * _sr_keychain_get_complete_url(const char * domain, const char * user){
 	const int length = strlen(user) + 1 + strlen(domain);
-	char* domainAndUser = (char*)malloc(sizeof(char) * (length + 1));
+	char* domainAndUser = (char*) SR_KEYCHAIN_MALLOC(sizeof(char) * (length + 1));
 	snprintf(domainAndUser, length, "%s@%s", user, domain);
 
 	const int sizeWide = MultiByteToWideChar(CP_UTF8, 0, domainAndUser, -1, NULL, 0);
-	wchar_t* targetName = (wchar_t*)malloc(sizeWide * sizeof(wchar_t));
+	wchar_t* targetName = (wchar_t*) SR_KEYCHAIN_MALLOC(sizeWide * sizeof(wchar_t));
 	MultiByteToWideChar(CP_UTF8, 0, domainAndUser, -1, targetName, sizeWide);
-	free(domainAndUser);
+	SR_KEYCHAIN_FREE(domainAndUser);
 	return targetName;
 }
 #endif
@@ -52,7 +62,7 @@ int sr_keychain_get_password(const char * domain, const char * user, char ** pas
 	char * passBuffer;
 	OSStatus stat = SecKeychainFindInternetPassword(NULL, strlen(domain), domain, 0, NULL, strlen(user), user, 0, NULL, 0, kSecProtocolTypeAny, kSecAuthenticationTypeDefault, &passLength, (void**)&passBuffer, NULL);
 	if(stat == 0){
-		*password = (char*)malloc(sizeof(char) * (passLength + 1));
+		*password = (char*) SR_KEYCHAIN_MALLOC(sizeof(char) * (passLength + 1));
 		memcpy(*password, passBuffer, passLength);
 		(*password)[passLength] = '\0';
 		return 0;
@@ -63,11 +73,11 @@ int sr_keychain_get_password(const char * domain, const char * user, char ** pas
 
 	PCREDENTIALW credential;
 	BOOL stat = CredReadW(targetName, CRED_TYPE_GENERIC, 0, &credential);
-	free(targetName);
+	SR_KEYCHAIN_FREE(targetName);
 
 	if(stat){
 		const int passLength = credential->CredentialBlobSize;
-		*password = (char*)malloc(sizeof(char) * (passLength + 1));
+		*password = (char*) SR_KEYCHAIN_MALLOC(sizeof(char) * (passLength + 1));
 		memcpy(*password, (const char *)credential->CredentialBlob, passLength);
 		(*password)[passLength] = '\0';
 		CredFree(credential);
@@ -85,7 +95,7 @@ int sr_keychain_get_password(const char * domain, const char * user, char ** pas
 		return 1;
 	}
 	const int passLength = strlen(passBuffer);
-	*password = (char*)malloc(sizeof(char) * (passLength + 1));
+	*password = (char*) SR_KEYCHAIN_MALLOC(sizeof(char) * (passLength + 1));
 	memcpy(*password, passBuffer, passLength);
 	(*password)[passLength] = '\0';
 	secret_password_free(passBuffer);
@@ -120,7 +130,7 @@ int sr_keychain_set_password(const char * domain, char * user, const char * pass
 	credsToAdd.Persist = CRED_PERSIST_LOCAL_MACHINE;
 	// This will overwrite the credential if it already exists.
 	BOOL stat = CredWrite(&credsToAdd, 0);
-	free(targetName);
+	SR_KEYCHAIN_FREE(targetName);
 	return stat ? 0 : 1;
 #elif defined(__linux__)
 	GError* stat = NULL;
