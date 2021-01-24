@@ -1,3 +1,8 @@
+-- On Linux we have to query the dependencies for libsecret
+if os.ishost("linux") then
+	listing, code = os.outputof("pkg-config --libs libsecret-1")
+	libsecretLibs = string.explode(string.gsub(listing, "-l", ""), " ")
+end
 
 -- Projects
 
@@ -27,9 +32,6 @@ project("Example")
 		links({"Advapi32"})
 
 	filter("system:linux")
-		-- On Linux We have to query the dependencies for libsecret
-		listing, code = os.outputof("pkg-config --libs libsecret-1")
-		libsecretLibs = string.explode(string.gsub(listing, "-l", ""), " ")
 		links(libsecretLibs)
 		
 	filter({})

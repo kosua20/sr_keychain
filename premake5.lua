@@ -1,3 +1,7 @@
+-- On Linux we have to query the dependencies for libsecret
+if os.ishost("linux") then
+	libsecretFlags, code = os.outputof("pkg-config --cflags libsecret-1")
+end
 
 workspace("sr_keychain")
 
@@ -42,8 +46,7 @@ project("sr_keychain")
 	filter("system:macosx")
 
 	filter({"system:linux"})
-		-- On Linux We have to query the dependencies for libsecret
-		buildoptions({"`pkg-config --cflags libsecret-1`"})
+		buildoptions(libsecretFlags)
 	
 	-- visual studio filters
 	--filter("action:vs*")
