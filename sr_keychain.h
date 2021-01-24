@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SR_KEYCHAIN_H
+#define SR_KEYCHAIN_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,4 +13,6 @@ void sr_keychain_set_stdin_printback(int enable);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

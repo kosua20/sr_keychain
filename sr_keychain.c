@@ -1,3 +1,4 @@
+#include "sr_keychain.h"
 
 #ifndef SR_KEYCHAIN_MALLOC
 #define SR_KEYCHAIN_MALLOC(S) (malloc(S))
@@ -7,6 +8,9 @@
 #define SR_KEYCHAIN_FREE(S) (free(S))
 #endif
 
+#ifndef SR_KEYCHAIN_LINUX_SCHEME_NAME
+#define SR_KEYCHAIN_LINUX_SCHEME_NAME "com.sr.sr_keychain"
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -36,10 +40,6 @@ wchar_t * _sr_keychain_get_complete_url(const char * domain, const char * user){
 
 #ifdef __linux__
 #include <libsecret/secret.h>
-
-#ifndef SR_KEYCHAIN_LINUX_SCHEME_NAME
-#define SR_KEYCHAIN_LINUX_SCHEME_NAME "com.sr.sr_keychain"
-#endif
 
 // Declare secret scheme.
 const SecretSchema * _sr_keychain_get_schema(){
