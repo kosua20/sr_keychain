@@ -27,22 +27,28 @@ int main(int argc, char** argv){
 	passwd[MAX_STR_SIZE] = '\0';
 
 	printf("Input domain:\n");
-	fgets(domain, MAX_STR_SIZE, stdin);
+	char* res = fgets(domain, MAX_STR_SIZE, stdin);
+	if(res == NULL){ return 1; }
 	trim_end_newline(domain);
 
 	printf("Input user:\n");
-	fgets(user, MAX_STR_SIZE, stdin);
+	res = fgets(user, MAX_STR_SIZE, stdin);
+	if(res == NULL){ return 1; }
 	trim_end_newline(user);
 
 	printf("Input password:\n");
 	sr_keychain_set_stdin_printback(0);
-	fgets(passwd, MAX_STR_SIZE, stdin);
+	res =fgets(passwd, MAX_STR_SIZE, stdin);
+	if(res == NULL){ return 1; }
 	trim_end_newline(passwd);
 	sr_keychain_set_stdin_printback(1);
 
-	printf("Domain: \"%s\"\n", domain);
-	printf("User: \"%s\"\n", user);
-	printf("Password: \"%s\"\n", passwd);
+	printf("--------------------------------------\n");
+	printf("Input summary:\n");
+	printf("* Domain: \"%s\"\n", domain);
+	printf("* User: \"%s\"\n", user);
+	printf("* Password: \"%s\"\n", passwd);
+	printf("--------------------------------------\n");
 
 	printf("Writing to keychain...");
 	const int res0 = sr_keychain_set_password(domain, user, passwd);
@@ -52,6 +58,8 @@ int main(int argc, char** argv){
 	}
 	printf("success.\n");
 
+	printf("--------------------------------------\n");
+	
 	printf("Retrieving from keychain...");
 	char* passwordResult = NULL;
 	const int res1 = sr_keychain_get_password(domain, user, &passwordResult);
@@ -61,7 +69,7 @@ int main(int argc, char** argv){
 	}
 
 	printf("success.\n");
-	printf("Password: \"%s\"\n", passwordResult);
+	printf("Password is: \"%s\"\n", passwordResult);
 	free(passwordResult);
 
 	return 0;

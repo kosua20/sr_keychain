@@ -19,7 +19,6 @@ project("Example")
 	sysincludedirs({ "../" })
 	links({"sr_keychain"})
 
-
 	-- Libraries for each platform.
 	filter("system:macosx")
 		links({ "Security.framework" })
@@ -29,14 +28,9 @@ project("Example")
 
 	filter("system:linux")
 		-- On Linux We have to query the dependencies for libsecret
-		if os.ishost("linux") then
-			listing, code = os.outputof("pkg-config --cflags libsecret-1")
-			libsecretFlags = string.explode(listing, " ")
-			listing, code = os.outputof("pkg-config --libs libsecret-1")
-			libsecretLibs = string.explode(string.gsub(listing, "-l", ""), " ")
-		end
-		buildoptions( libsecretFlags )
-		links( libsecretLibs )
+		listing, code = os.outputof("pkg-config --libs libsecret-1")
+		libsecretLibs = string.explode(string.gsub(listing, "-l", ""), " ")
+		links(libsecretLibs)
 		
 	filter({})
 
