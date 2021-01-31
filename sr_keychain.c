@@ -8,6 +8,10 @@
 #define SR_KEYCHAIN_FREE(S) (free(S))
 #endif
 
+#ifndef SR_KEYCHAIN_MEMCPY
+#define SR_KEYCHAIN_MEMCPY(D, S, T) (memcpy(D, S, T))
+#endif
+
 #ifndef SR_KEYCHAIN_LINUX_SCHEME_NAME
 #define SR_KEYCHAIN_LINUX_SCHEME_NAME "com.sr.sr_keychain"
 #endif
@@ -67,7 +71,7 @@ int sr_keychain_get_password(const char * domain, const char * user, char ** pas
 	OSStatus stat = SecKeychainFindInternetPassword(NULL, strlen(domain), domain, 0, NULL, strlen(user), user, 0, NULL, 0, kSecProtocolTypeAny, kSecAuthenticationTypeDefault, &passLength, (void**)&passBuffer, NULL);
 	if(stat == 0){
 		*password = (char*) SR_KEYCHAIN_MALLOC(sizeof(char) * (passLength + 1));
-		memcpy(*password, passBuffer, passLength);
+		SR_KEYCHAIN_MEMCPY(*password, passBuffer, sizeof(char) * passLength);
 		(*password)[passLength] = '\0';
 		return 0;
 	}
@@ -84,7 +88,7 @@ int sr_keychain_get_password(const char * domain, const char * user, char ** pas
 	if(stat){
 		const int passLength = credential->CredentialBlobSize;
 		*password = (char*) SR_KEYCHAIN_MALLOC(sizeof(char) * (passLength + 1));
-		memcpy(*password, (const char *)credential->CredentialBlob, passLength);
+		SR_KEYCHAIN_MEMCPY(*password, (const char *)credential->CredentialBlob, sizeof(char) * passLength);
 		(*password)[passLength] = '\0';
 		CredFree(credential);
 		return 0;
@@ -103,7 +107,7 @@ int sr_keychain_get_password(const char * domain, const char * user, char ** pas
 	}
 	const int passLength = strlen(passBuffer);
 	*password = (char*) SR_KEYCHAIN_MALLOC(sizeof(char) * (passLength + 1));
-	memcpy(*password, passBuffer, passLength);
+	SR_KEYCHAIN_MEMCPY(*password, passBuffer, sizeof(char) * passLength);
 	(*password)[passLength] = '\0';
 	secret_password_free(passBuffer);
 	return 0;
